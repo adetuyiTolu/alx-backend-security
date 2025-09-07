@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+IPGEOLOCATION_API_KEY = '9760e6bcfd4c46da97369966893879e9'
+
 
 # Application definition
 
@@ -49,7 +51,16 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "ip_tracking.middleware.IPTrackingMiddleware",
+    'ip_tracking.middleware.IPBlockMiddleware',
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
+
 
 ROOT_URLCONF = "alx_backend_security.urls"
 
@@ -70,6 +81,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "alx_backend_security.wsgi.application"
 
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'detect_suspicious_ips_hourly': {
+        'task': 'ip_tracking.tasks.detect_suspicious_ips',
+        'schedule': crontab(minute=0, hour='*'),  # every hour
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
